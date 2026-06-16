@@ -1,0 +1,8 @@
+.idea
+secrets
+target
+ai_log
+test
+dependency-reduced-pom.xml
+
+!src/test
