@@ -14,9 +14,11 @@ tools: []
 ## Available tools
 All tools are restricted to work only within the pwd.
 
-| Name           | Purpose                        |
-|----------------|--------------------------------|
-| edit_file      | For editing or creating files  |
-| file_structure | For searching files or folders |
-| read_file      | For reading files              |
-| execute_shell | Lets the AI execute commands (not restricted, but human validation before each execution) |
+| Name            | Purpose                                                                                   |
+|-----------------|-------------------------------------------------------------------------------------------|
+| edit_file       | For editing files                                                                         |
+| create_file     | For creating files or folders                                                             |
+| delete_file     | For deleting files or folders                                                             |
+| file_structure  | For searching files or folders                                                            |
+| read_file       | For reading files                                                                         |
+| execute_shell   | Lets the AI execute commands (not restricted, but human validation before each execution) |

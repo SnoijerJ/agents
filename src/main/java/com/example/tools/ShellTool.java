@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static com.example.tools.ToolUtils.runCommand;
+
 public class ShellTool implements Tool {
     @Override
     public String getName() {
@@ -28,7 +30,7 @@ public class ShellTool implements Tool {
             You are allowed to use this tool to investigate errors given by other tools.
             
             Example command: `echo "Hello World"`
-            Example response: {exitcode: 0, output: "Hello World", err: ""}
+            Example response: {exit_code: 0, output: "Hello World", err: ""}
             """;
     }
 
@@ -68,19 +70,5 @@ public class ShellTool implements Tool {
                 .callId(toolCall.callId())
                 .output(content)
                 .build();
-    }
-
-    private static Map<String, String> runCommand(String command) throws IOException, InterruptedException {
-
-        ProcessBuilder pb = new ProcessBuilder(new String[] {"/bin/bash", "-c", command});
-
-        Process process = pb.start();
-
-        Map<String, String> result = new HashMap<>();
-        result.put("output", new String(process.getInputStream().readAllBytes()));
-        result.put("err", new String(process.getErrorStream().readAllBytes()));
-        result.put("exit_code", String.valueOf(process.waitFor()));
-
-        return result;
     }
 }

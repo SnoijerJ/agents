@@ -1,6 +1,8 @@
-package com.example.tools;
+package com.example.tools.fileOperations;
 
 import com.example.memory.Logger;
+import com.example.tools.Parameter;
+import com.example.tools.Tool;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.models.responses.ResponseFunctionToolCall;
@@ -12,6 +14,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.tools.ToolUtils.isWithinDirectory;
+
 public class FileStructureTool implements Tool {
     @Override
     public String getName() {
@@ -22,6 +26,7 @@ public class FileStructureTool implements Tool {
     public String getDescription() {
         return """
             Returns the file structure from a certain path
+            Do not use this tool if you can retrieve your answer from the context earlier in the conversation, unless the user explicitly says the structure changed.
             Example response: {exampleRoot=[{rootDir2=[]}, {rootDir=[{rootDirDir=[{rootDirDirDir=[rootDirDirDirFile]}, rootDirDirFile]}]}, rootFile]}
             """;
     }
@@ -42,13 +47,14 @@ public class FileStructureTool implements Tool {
             root = Path.of((String) args.get("path"));
 
             if (!isWithinDirectory(Path.of("./"), root)) {
-                content = "TOOL ERROR: The supplied path lays outside of this project";
+                content = "TOOL ERROR: File is not allowed to be accessed cause it lays outside the PWD";
             } else if (!Files.exists(root)) {
                 content = "TOOL ERROR: The supplied path does not exist";
             } else if (Files.isRegularFile(root)) {
                 content = "Supplied path is a file";
             } else {
                 content = getDirectory(root);
+                System.out.println("[SYSTEM] Provided file structure for " + root);
             }
         } catch (JsonProcessingException e) {
             content = "TOOL ERROR: Could not read argument: " + e;
@@ -70,12 +76,5 @@ public class FileStructureTool implements Tool {
         } catch (IOException e) {
             return "ERROR: Could not read dir: " + e;
         }
-    }
-
-    private boolean isWithinDirectory(Path baseDir, Path target) {
-        Path normalizedBase = baseDir.toAbsolutePath().normalize();
-        Path normalizedTarget = target.toAbsolutePath().normalize();
-
-        return normalizedTarget.startsWith(normalizedBase);
     }
 }

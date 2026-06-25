@@ -1,6 +1,7 @@
 package com.example.tools;
 
 import com.example.memory.Logger;
+import com.example.tools.fileOperations.EditFileTool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.openai.models.responses.ResponseFunctionToolCall;
@@ -38,17 +39,10 @@ public class TestEditFileTool {
         // Execute
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode node = mapper.createObjectNode();
-        node.put("diff",
-                String.format("""
-                --- a/%s
-                +++ b/%s
-                @@ -1,3 +1,3 @@
-                 Hello sheeple
-                 This is very nice
-                -Ow an ugly line
-                +Ah, a nice ending
-                """, testFile, testFile)
-        );
+        node.put("path", testFile.toString());
+        node.put("old_string", "Ow an ugly line");
+        node.put("new_string", "Ah, a nice ending");
+        node.put("replace_all", false);
 
         String json = mapper.writeValueAsString(node);
         ResponseFunctionToolCall toolCall = Mockito.mock(ResponseFunctionToolCall.class);

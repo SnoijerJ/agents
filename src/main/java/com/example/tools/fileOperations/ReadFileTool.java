@@ -1,15 +1,18 @@
-package com.example.tools;
+package com.example.tools.fileOperations;
 
 import com.example.memory.Logger;
+import com.example.tools.Parameter;
+import com.example.tools.Tool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.models.responses.ResponseFunctionToolCall;
 import com.openai.models.responses.ResponseInputItem;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.tools.ToolUtils.isWithinDirectory;
 
 public class ReadFileTool implements Tool {
 
@@ -40,26 +43,19 @@ public class ReadFileTool implements Tool {
             System.out.println("[SYSTEM] Reading file: " + path);
 
             if (!isWithinDirectory(Path.of("./"), path)) {
-                throw new IllegalArgumentException("path falls outside of working directory");
+                throw new IllegalArgumentException("File is not allowed to be read cause it lays outside the PWD");
             }
 
             content = Files.readString(path);
 
         } catch (Exception e) {
             content = "TOOL ERROR: " + e;
-            System.out.println(content);
+            System.out.println("[SYSTEM] Reading file:" + content);
         }
 
         return ResponseInputItem.FunctionCallOutput.builder()
                 .callId(toolCall.callId())
                 .output(content)
                 .build();
-    }
-
-    private boolean isWithinDirectory(Path baseDir, Path target) {
-        Path normalizedBase = baseDir.toAbsolutePath().normalize();
-        Path normalizedTarget = target.toAbsolutePath().normalize();
-
-        return normalizedTarget.startsWith(normalizedBase);
     }
 }

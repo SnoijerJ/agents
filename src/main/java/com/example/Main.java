@@ -4,6 +4,7 @@ import com.example.agent.Agent;
 import com.example.agent.AgentRunner;
 import com.example.memory.Logger;
 import com.example.tools.*;
+import com.example.tools.fileOperations.*;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 
@@ -23,7 +24,7 @@ public class Main {
         } else {
             String key = System.getenv().get("OPENAI_API_KEY");
             if (key == null) {
-                throw new RuntimeException("No env var OPEN_API_KEY set");
+                throw new RuntimeException("No env var OPENAI_API_KEY set");
             }
             return key;
         }
@@ -44,7 +45,11 @@ public class Main {
         toolRegistry.register(new ReadFileTool());
         toolRegistry.register(new EditFileTool());
         toolRegistry.register(new FileStructureTool());
+        toolRegistry.register(new CreateFileTool());
+        toolRegistry.register(new DeleteFileTool());
+        toolRegistry.register(new MoveFileTool());
         toolRegistry.register(new ShellTool());
+        toolRegistry.register(new ExecuteTestsTool());
 
         AgentRunner runner = new AgentRunner(client, toolRegistry, logger);
 
