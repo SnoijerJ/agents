@@ -6,9 +6,11 @@ import com.openai.client.OpenAIClient;
 import com.openai.models.responses.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class AgentRunner {
@@ -27,7 +29,7 @@ public class AgentRunner {
 
         List<Tool> agentTools = agent.tools().stream().map(t -> toolRegistry.getToolDefinition(t)).toList();
 
-        ResponseCreateParams.Input input = ResponseCreateParams.Input.ofText(userInput);
+        ResponseCreateParams.Input input = ResponseCreateParams.Input.ofText(parseUserCommand(userInput));
         String previousResponseId = null;
 
         while (true) {
@@ -67,7 +69,7 @@ public class AgentRunner {
                                 Scanner scanner = new Scanner(System.in);
                                 toolResults.add(ResponseInputItem.ofMessage(ResponseInputItem.Message.builder()
                                         .content(List.of(ResponseInputContent.ofInputText(ResponseInputText.builder()
-                                                .text(scanner.nextLine())
+                                                .text(parseUserCommand(scanner.nextLine()))
                                                 .build())))
                                         .role(ResponseInputItem.Message.Role.USER)
                                         .build()));
@@ -86,5 +88,44 @@ public class AgentRunner {
         Path pwd = Path.of("./").toAbsolutePath();
 
         return String.format("<context>\nPWD: %s\n</context>", pwd);
+    }
+
+    private String parseUserCommand(String input) {
+        String userInput = input;
+        while (true) {
+            if (!userInput.strip().startsWith("/")) {
+                return userInput;
+            }
+            try {
+                String promptFileName = input.strip().split(" ")[0].replace("/", "");
+                List<Path> promptFiles = new ArrayList<>(getPrompts(Path.of("./.ai/prompts")));
+                promptFiles.addAll(getPrompts(Path.of("src/main/resources/prompts")));
+
+                Optional<Path> prompt = promptFiles.stream()
+                        .filter(f -> f.getFileName().toString().replace(".md", "").equals(promptFileName))
+                        .findFirst();
+
+                if (prompt.isPresent()) {
+                    return Files.readString(prompt.get()) + "\n" + input.replace(promptFileName, "");
+                } else {
+                    System.out.println("[SYSTEM] Could not find the promptfile specified in `.ai/prompts`, provide new input");
+                }
+            } catch (IOException e) {
+                System.out.println("[SYSTEM] Could not read prompts in `.ai/prompts`, provide new input");
+            }
+            Scanner scanner = new Scanner(System.in);
+            userInput = scanner.nextLine();
+        }
+    }
+
+    private static List<Path> getPrompts(Path promptFolder) throws IOException {
+        if (!Files.exists(promptFolder)) {
+            return new ArrayList<>();
+        }
+
+        return Files.list(promptFolder)
+                .filter(Files::isRegularFile)
+                .filter(f -> f.toString().endsWith(".md"))
+                .toList();
     }
 }
