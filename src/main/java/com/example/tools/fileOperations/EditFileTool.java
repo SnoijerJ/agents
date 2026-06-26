@@ -28,6 +28,7 @@ public class EditFileTool implements Tool {
         This tool is meant to edit a file by replacing a string by a new string. It is important that the old string is unique.
         If this is not the case, more context should be provided. There is however also an option to replace multiple occurrences if this is intentional by setting replace_all to true.
         Before using this tool, be sure to read the content of the file.
+        Make `old_string` as small as possible without creating ambiguity.
         You can write to an completely empty file by leaving `old_string` empty as well. If the file has content, old_string can not be empty.
         """;
     }

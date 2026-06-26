@@ -31,7 +31,8 @@ public class CreateFileTool implements Tool {
     public List<Parameter> getParameters() {
         return List.of(
                 new Parameter("path", "string", "path of the file or folder to create"),
-                new Parameter("is_file", "boolean", "true to create a file, false to create a folder")
+                new Parameter("is_file", "boolean", "true to create a file, false to create a folder"),
+                new Parameter("content", "string", "Content for in the file. Must be `\"\"` when `is_file` = `false`")
         );
     }
 
@@ -42,6 +43,7 @@ public class CreateFileTool implements Tool {
             Map<String, Object> args = new ObjectMapper().readValue(toolCall.arguments(), Map.class);
             Path path = Path.of((String) args.get("path"));
             Boolean isFile = (Boolean) args.get("is_file");
+            String fileContent = (String) args.get("content");
 
             if (!isWithinDirectory(Path.of("./"), path)) {
                 throw new ToolException("File is not allowed to be created cause it lays outside the PWD");
@@ -54,10 +56,17 @@ public class CreateFileTool implements Tool {
 
             if (isFile) {
                 Files.createFile(path);
+                if (!"".equals(fileContent)) {
+                    Files.writeString(path, fileContent);
+                }
                 content = "Created file " + path;
             } else {
-                content = "Created directory " + path;
-                Files.createDirectory(path);
+                if ("".equals(fileContent)) {
+                    Files.createDirectory(path);
+                    content = "Created directory " + path;
+                } else {
+                    content = "TOOL ERROR: content must be an empty string when creating a directory";
+                }
             }
         } catch (Exception e) {
             content = "TOOL ERROR: " + e;

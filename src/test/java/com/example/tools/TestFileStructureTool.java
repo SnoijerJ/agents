@@ -28,7 +28,7 @@ public class TestFileStructureTool {
         Path rootDirDir = Path.of(rootDir.toString(), "rootDirDir");
         Path rootDirDirDir = Path.of(rootDirDir.toString(), "rootDirDirDir");
         Path rootDirDirDirFile = Path.of(rootDirDirDir.toString(), "rootDirDirDirFile");
-        Path rootDir2 = Path.of(root.toString(), "rootDir2");
+        Path rootDir2 = Path.of(root.toString(), ".rootDir2");
         Path rootDirDirFile = Path.of(rootDirDir.toString(), "rootDirDirFile");
 
         if (Files.exists(root)) {
@@ -56,6 +56,7 @@ public class TestFileStructureTool {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode node = mapper.createObjectNode();
         node.put("path", root.toString());
+        node.put("include_hidden", true);
         String json = mapper.writeValueAsString(node);
         ResponseFunctionToolCall toolCall = Mockito.mock(ResponseFunctionToolCall.class);
         Mockito.when(toolCall.arguments()).thenReturn(json);
@@ -65,7 +66,7 @@ public class TestFileStructureTool {
 
         // Verify
         String actual = output.output().asString();
-        String expected = "{exampleRoot=[{rootDir2=[]}, {rootDir=[{rootDirDir=[{rootDirDirDir=[rootDirDirDirFile]}, rootDirDirFile]}]}, rootFile]}";
+        String expected = "{exampleRoot=[{.rootDir2=[]}, {rootDir=[{rootDirDir=[{rootDirDirDir=[rootDirDirDirFile]}, rootDirDirFile]}]}, rootFile]}";
         assertEquals(expected, actual);
     }
 }
