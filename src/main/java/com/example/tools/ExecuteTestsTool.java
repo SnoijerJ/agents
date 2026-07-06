@@ -41,6 +41,8 @@ public class ExecuteTestsTool implements Tool {
         String behaveCommand = "./scripts/test";
         Map<String, String> result = new HashMap<>();
 
+        System.out.println("[SYSTEM] Executing tests: Start execution");
+
         String content;
         try {
             Map<String, Object> args = new ObjectMapper().readValue(toolCall.arguments(), Map.class);

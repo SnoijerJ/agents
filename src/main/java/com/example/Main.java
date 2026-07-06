@@ -1,6 +1,7 @@
 package com.example;
 
 import com.example.agent.Agent;
+import com.example.agent.AgentException;
 import com.example.agent.AgentRunner;
 import com.example.memory.Logger;
 import com.example.tools.*;
@@ -56,7 +57,7 @@ public class Main {
         run(runner);
     }
 
-    private static void run(AgentRunner runner) throws IOException, Agent.AgentParserException {
+    private static void run(AgentRunner runner) throws IOException, AgentException {
         List<Agent> agents = getAgents(Path.of("src/main/resources/agents"));
         agents.addAll(getAgents(Path.of(".ai/agents")));
         agents.add(new Agent("chat_agent", "gpt-5.4-mini", "", List.of()));
@@ -84,7 +85,7 @@ public class Main {
         return scanner.nextLine();
     }
 
-    private static List<Agent> getAgents(Path agentFolder) throws IOException, Agent.AgentParserException {
+    private static List<Agent> getAgents(Path agentFolder) throws IOException, AgentException {
         if (!Files.exists(agentFolder)) {
             return new ArrayList<>();
         }

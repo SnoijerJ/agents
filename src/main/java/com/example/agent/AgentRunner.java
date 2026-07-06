@@ -1,6 +1,7 @@
 package com.example.agent;
 
 import com.example.memory.Logger;
+import com.example.skills.Skill;
 import com.example.tools.ToolRegistry;
 import com.openai.client.OpenAIClient;
 import com.openai.models.responses.*;
@@ -27,7 +28,7 @@ public class AgentRunner {
 
     public void run(Agent agent, String userInput) throws IOException {
 
-        List<Tool> agentTools = agent.tools().stream().map(t -> toolRegistry.getToolDefinition(t)).toList();
+        List<Tool> agentTools = agent.tools().stream().map(toolRegistry::getToolDefinition).toList();
 
         ResponseCreateParams.Input input = ResponseCreateParams.Input.ofText(parseUserCommand(userInput));
         String previousResponseId = null;
@@ -37,7 +38,8 @@ public class AgentRunner {
             // Ask OpenAI
             ResponseCreateParams params = ResponseCreateParams.builder()
                     .input(input)
-                    .instructions(agent.SystemPrompt() + "\n" + getContext())
+                    .instructions(agent.SystemPrompt().strip() + "\n"
+                            + getContext().strip())
                     .model(agent.model())
                     .previousResponseId(previousResponseId)
                     .tools(agentTools)
@@ -84,10 +86,14 @@ public class AgentRunner {
         }
     }
 
-    private String getContext() {
+    private String getContext() throws IOException {
         Path pwd = Path.of("./").toAbsolutePath();
+        List<Skill> skills = Skill.getSkills(Path.of(".ai/skills"));
 
-        return String.format("<context>\nPWD: %s\n</context>", pwd);
+        return "<context>\n" +
+                String.format("<pwd>%s</pwd>\n", pwd) +
+                Skill.getSkillsOverview(skills) +
+                "</context>";
     }
 
     private String parseUserCommand(String input) {

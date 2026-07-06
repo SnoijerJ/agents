@@ -1,10 +1,12 @@
 package com.example.agent;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import static com.example.Utils.parseFile;
 
 public record Agent (
         String name,
@@ -12,33 +14,26 @@ public record Agent (
         String SystemPrompt,
         List<String> tools
 ){
-    public static class AgentParserException extends Exception {
+    public static Agent fromFile(Path agentFile) throws IOException, AgentException {
+        Map<String, String> agentMap = parseFile(agentFile);
 
-        public AgentParserException(int line, String message) {
-            super("[line " + line + "] " + message);
-        }
-    }
-    public static Agent fromFile(Path agentFile) throws IOException, AgentParserException {
-        List<String> lines = Files.readAllLines(agentFile);
-
-        String name = validateKeyValue(1, lines.get(1), "name");
-        String model = validateKeyValue(2, lines.get(2), "model");
-        String raw_tools = validateKeyValue(3, lines.get(3), "tools");
+        String raw_tools = validateKeyValue(agentMap, "tools");
         List<String> tools = Arrays.stream(raw_tools.substring(1, raw_tools.length() - 1).split(",\\s*")).toList();
-        String systemPrompt = getDefaultPrompt() + String.join("\n", lines.subList(5, lines.size()));
 
-        return new Agent(name, model, systemPrompt, tools);
+        return new Agent(validateKeyValue(agentMap, "name"),
+                validateKeyValue(agentMap, "model"),
+                validateKeyValue(agentMap, "content"),
+                tools);
     }
 
-    private static String validateKeyValue(int nr, String line, String key) throws AgentParserException {
-        String fullKey = key + ": ";
-        if (!line.startsWith(fullKey)) {
-            throw new AgentParserException(nr, "Does not contain the expected key: " + key);
+    private static String validateKeyValue(Map<String, String> agentMap, String key) throws AgentException {
+        if (!agentMap.containsKey(key) || agentMap.get(key).isBlank()) {
+            throw new AgentException("Does not contain the expected key with a value: " + key);
         }
-        return line.replace(fullKey, "").strip();
+        return agentMap.get(key);
     }
 
-    private static String getDefaultPrompt() {
+    public static String getDefaultPrompt() {
         return """
                 <default>
                 This default instruction set must always be followed, unless it is overridden by the other instructions or user prompt.
@@ -47,8 +42,8 @@ public record Agent (
                 For example, creating a file and than editing the same file must be chained in a single response.
                 For example, multiple edits to the same file must be chained in a single response.
                 If a human response is requested, do not use any tools or functions at the same time.
-                Using the shell-tool is always less preferred than the other tools since this requires more time and user input.
-                </default>
-                """;
+                You must use other tools than the shell tool wherever possible since this requires more time and user input.
+                Do not create long chained shell commands.
+                </default>""";
     }
 }

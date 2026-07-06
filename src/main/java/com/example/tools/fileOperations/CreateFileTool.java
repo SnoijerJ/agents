@@ -59,7 +59,7 @@ public class CreateFileTool implements Tool {
                 if (!"".equals(fileContent)) {
                     Files.writeString(path, fileContent);
                 }
-                content = "Created file " + path;
+                content = "Created file: " + path;
             } else {
                 if ("".equals(fileContent)) {
                     Files.createDirectory(path);
